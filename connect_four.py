@@ -1,4 +1,4 @@
-
+import json
 import os
 import re
 
@@ -105,13 +105,30 @@ class Game:
 
 class MainMenu:
     def __init__(self):
-        self.saved_games = {}
+        self.board = board
 
     def show_menu(self):
         while True:
-            input("1.Exit\n2.Start New Game\n3.Load Saved Game\n4.Enter your choice:")
-            break
-            pass
+            print("1.Exit")
+            print("2.Start a new Game")
+            print("3. Load a saved game")
+            if self.saved_games:
+                print("3. Load a saved game")
+            try:
+                choice = int(input("Enter you choice:"))
+                if choice in [1, 2] or (choice == 3 and self.saved_games):
+                    return choice
+                else:
+                    raise TypeError
+            except:
+                print("please enter a valid number")
+
+
+    
+    
+    
+    
+    
     
     def get_saved_game(self):
         while True:
@@ -125,31 +142,58 @@ class MainMenu:
                 return self.load_game(chosen_game_name)
             else:
                 print("invalid input. Please enter a valid game name:")
-
+    def save_game(self, game_name: str, game: Game):
+        
+        self.saved_games[game_name] = game.serialize()
+    
+    
+    
+    
     def load_game(self, game_name):
-        # TODO: Load the game state from the saved games dictionary and return a new Game instance.
-        pass
-    def saved_game(self, game_name):
-        # TODO: Save the game into the `saved_games` dictionary.
+        saved_games = {}# TODO: Load the game state from the saved games dictionary and return a new Game instance.
+        return self.game_name(saved_games)
+        
+        game_state = self.saved_games[game_name]
+        game = Game()
+        game.deserialize(game_state)
+        return game
+
         # The key used to save the game will be the `game_name`.
         # The value will be serialized game using `game.serialize()`.
         pass
     def play_game(self, game=Game()):
-        # TODO: Play the game and handle the outcome returned from the `game.play()` method.
-        # If the outcome is 'save', prompt the user for a game name and save the game using the `save_game` method.
-        # If the outcome is 'draw', print a message indicating the game is a draw.
-        # If the outcome is 'X' or 'O', print a message indicating the winning player.
-        pass
+        outcome = game.play()
+        if outcome == "save":
+            game_name = input("Please enter a game name")
+            self.save_game(game_name, game)
+            print(f"game was saved as {game_name}")
+            print("save the game")
+        elif outcome == "draw":
+            print("The game is a draw. No one wins.")
+        elif outcome in ["X", "o"]:
+            print(f"Congratulations Player {outcome} wins!!!")
+
     def run(self):
-        # TODO: Implement the main menu loop.
-        # Show the main menu, get the user's choice, and handle the choice accordingly.
-        # If the user chooses to start a new game, call the `play_game` method.
-        # If the user chooses to load a saved game, prompt the user to choose a saved game and call the `play_game` method with the loaded game.
-        # If the user chooses to exit, break out of the loop.
+        while True:
+            choice = self.show_menu()
+            if choice == 1:
+                break
+            elif choice == 2:
+                self.play_game()
+            elif choice == 3:
+                saved_game = self.get_saved_game()
+                self.play_game(saved_game)
+    def save_file(self):
         pass
+    def save_to_file(self):
+        pass
+
+
+
 
 
 if __name__ == "__main__":
+
     main_menu = MainMenu()
     main_menu.run()
 
@@ -169,6 +213,9 @@ print(obj.is_full())
 
 obj = MainMenu()
 print(obj.show_menu())
+
+
+
 
 
 
