@@ -1,11 +1,31 @@
+# Week 4 - Enhancing the Game with Persistent Save/Load Functionality and Screen Clearing
+#
+# Instructions:
+# 1. Add a free function to clear the screen.
+#    - Define a function named `clear_screen`.
+#    - Use the `os` module to clear the screen based on the operating system.
+#    - Call this function whenever you need to clear the screen in the game.
+# 2. Enhance the `MainMenu` class to save to disk.
+##    - Import the `json`` moduel at the top of the script.
+##    - Add a new attribute `save_file` to the `MainMenu` class to store the file path for saving games.
+##    - Add a method named `save_to_file` to the `MainMenu` class.
+##        - Open the `save_file` in write mode and use the `json` module to write the `saved_games` dictionary to the file.
+##        - Use the `json.dump` method to write the dictionary to the file.
+#        - Call the `save_to_file` method when the game is saved in the `save_game` method.
+#    - Add a method named `load_saved_games` to the `MainMenu` class.
+#        - Check if the save file exists.
+#        - If the file exists, open the file in read mode and use the `json` module to load the saved games into the `saved_games` dictionary.
+#        - If the file does not exist, return an empty dictionary.
+#       Update the `__init__` method in the `MainMenu` class to load the saved games from the file and store them in the `saved_games` attribute.
+
 import json
-import os
+import os  
 import re
 
+
+# TODO: Call the `clear_screen` function whenever you need to clear the screen in the game.
 def clear_screen():
-    os.system('cls')
-
-
+    os.system('cls' if os.name == 'nt' else 'clear')
 
 class Board:
     def __init__(self):
@@ -17,10 +37,10 @@ class Board:
                 self.grid[row].append(' ')
 
     def print_board(self):
-        for row in self.grid:
+        for i, row in enumerate(self.grid):
             print('|'.join(row))
             print('-' * 13)
-        print('0 1 2 3 4 5 6')
+        print('0 1 2 3 4 5 6')  # Add row numbers to the bottom
 
     def drop_disc(self, column, disc):
         if column < 0 or column >= 7 or self.grid[0][column] != ' ':
@@ -49,185 +69,153 @@ class Board:
                 return False
         return True
 
-
 class Game:
     def __init__(self):
         self.board = Board()
-        self.current_player = 'X'      
-    
-    
-    def switch_player(self):
-        if self.current_player == "X":
-            self.current_player = "O"
-        elif self.current_player == "O":
-            self.current_player = 'X'
-        
+        self.current_player = 'X'
 
-  
-        
+    def switch_player(self):
+        self.current_player = 'O' if self.current_player == 'X' else 'X'
+
     def play(self):
-        has_game_finished = False
         while True:
-            #
             self.board.print_board()
-            #
             try:
-                column = int(input(f"Player{self.current_player}, choose a column 0-6 "))
-                result_of_drop = self.board.drop_disc(column, self.current_player)
-                if not result_of_drop:
-                    print("Invalid move. Try again")
+                column = int(input(f"Player {self.current_player}, choose a column (0-6) or -1 to save and exit: "))
+                if column == -1:
+                    return 'save'
+                if not self.board.drop_disc(column, self.current_player):
+                    print("Invalid move. Try again.")
                     continue
-            except:
-            
-                print("Invalid input. please enter a number from 0-6")
+            except ValueError:
+                print("Invalid input. Please enter a number between 0 and 6.")
                 continue
             winner = self.board.check_winner()
             if winner:
                 self.board.print_board()
-                print(f"player {winner} wins!!!!!!!!!!!!!!")
-                break
+                print(f"Player {winner} wins!")
+                return 'win'
             if self.board.is_full():
-                print(" if was a tie: There was no winner try again soon!!!")
-                print("better luck next time")
-                break
-            
+                self.board.print_board()
+                print("The game is a draw!")
+                return 'draw'
             self.switch_player()
-        
+
     def deserialize(self, saved_game):
         self.board.grid = saved_game['board']
         self.current_player = saved_game['current_player']
-        
-
 
     def serialize(self):
         return {'board': self.board.grid, 'current_player': self.current_player}
-        
 
 class MainMenu:
     def __init__(self):
-        self.board = board
+        self.save_file = 'connectFourSave.json'
+        # TODO: Load the saved games using the `load_saved_games` method.
+        self.saved_games = self.load_saved_games()
+
+        
 
     def show_menu(self):
         while True:
-            print("1.Exit")
-            print("2.Start a new Game")
-            print("3. Load a saved game")
+            print("1. Exit")
+            print("2. Start New Game")
             if self.saved_games:
-                print("3. Load a saved game")
-            try:
-                choice = int(input("Enter you choice:"))
-                if choice in [1, 2] or (choice == 3 and self.saved_games):
-                    return choice
-                else:
-                    raise TypeError
-            except:
-                print("please enter a valid number")
+                print("3. Load Saved Game")
+            choice = input("Enter your choice: ")
+            if choice in ['1', '2'] or (choice == '3' and self.saved_games):
+                return choice
+            else:
+                print("Invalid choice. Please try again.")
 
-
-    
-    
-    
-    
-    
-    
     def get_saved_game(self):
         while True:
             saved_game_names = list(self.saved_games.keys())
             print("Saved games:")
-
             for game_name in saved_game_names:
                 print(f"- {game_name}")
-            chosen_game_name = input("Enter the name of the game to load:")
+            chosen_game_name = input("Enter the name of the saved game to load: ")
             if chosen_game_name in saved_game_names:
                 return self.load_game(chosen_game_name)
             else:
-                print("invalid input. Please enter a valid game name:")
-    def save_game(self, game_name: str, game: Game):
-        
-        self.saved_games[game_name] = game.serialize()
-    
-    
-    
-    
+                print("Invalid input. Please enter a valid game name.")
+
     def load_game(self, game_name):
-        saved_games = {}# TODO: Load the game state from the saved games dictionary and return a new Game instance.
-        return self.game_name(saved_games)
-        
-        game_state = self.saved_games[game_name]
+        game_state = self.saved_games.get(game_name)
         game = Game()
         game.deserialize(game_state)
         return game
+    
+    def save_game(self, game_name, game):
+        self.saved_games[game_name] = game.serialize()
+        self.save_to_file()     
 
-        # The key used to save the game will be the `game_name`.
-        # The value will be serialized game using `game.serialize()`.
-        pass
-    def play_game(self, game=Game()):
+    def save_to_file(self):
+        
+        with open(self.save_file, "w")as file:
+            json.dump(self.saved_games, file)
+
+        # TODO: Use the json module to save the saved_games dictionary to the save file.
+        
+
+    def load_saved_games(self):
+        #- Check if the save file exists.
+        #- If the file exists, open the file in read mode and use the `json` module to load the saved games into the `saved_games` dictionary.
+        #- If the file does not exist, return an empty dictionary.
+        try:
+            file_handle = open(self.save_file, "r")
+            return json.load(file_handle)
+        except:
+            return {}
+        
+        #if os.path.exists(self.save_file):
+        #    with open(self.save_file, "r") as file:
+        #        return json.load(file)
+        #else:
+        #    return {}
+        #    
+
+    def play_game(self, game):
         outcome = game.play()
-        if outcome == "save":
-            game_name = input("Please enter a game name")
+        if outcome == 'save':
+            game_name = input("Enter the name of the game: ")
             self.save_game(game_name, game)
-            print(f"game was saved as {game_name}")
-            print("save the game")
-        elif outcome == "draw":
-            print("The game is a draw. No one wins.")
-        elif outcome in ["X", "o"]:
-            print(f"Congratulations Player {outcome} wins!!!")
+            print("Game saved.")
+        elif outcome == 'draw':
+            print("The game is a draw.")
+        elif outcome in ['X', 'O']:
+            print(f"Player {outcome} wins!")
 
     def run(self):
         while True:
             choice = self.show_menu()
-            if choice == 1:
+
+            if choice == '1':
                 break
-            elif choice == 2:
-                self.play_game()
-            elif choice == 3:
+            elif choice == '2':
+                game = Game()
+                self.play_game(game)
+            elif choice == '3':
                 saved_game = self.get_saved_game()
                 self.play_game(saved_game)
-    def save_file(self):
-        pass
-    def save_to_file(self):
-        pass
-
-
-
-
 
 if __name__ == "__main__":
-
     main_menu = MainMenu()
     main_menu.run()
 
-obj = Game()
-obj.board.print_board()
-
-obj = Game()
-obj.play()
-
-board = Board()
-winner = board.check_winner()
-print(winner)
 
 
-obj = Board()
-print(obj.is_full())
+
+
+
+
+
 
 obj = MainMenu()
-print(obj.show_menu())
+print(obj.save_to_file())
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+obj = MainMenu()
+print(obj.load_saved_games())
 
 
 
